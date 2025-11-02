@@ -1,0 +1,25 @@
+/speckit.plan Implement daily-quote using this tech stack:
+
+Language: Node.js 18+ with ES modules
+Dependencies (max 5 per constitution):
+1. commander - CLI argument parsing
+2. chalk - Terminal colors and formatting
+3. conf - User data persistence
+
+Storage:
+- quotes.json - Embedded quote database (365 quotes)
+- User data in ~/.daily-quote/ using conf package
+
+Architecture:
+- quote-manager.js - Quote selection and retrieval
+- favorites-manager.js - Save/list favorites
+- history-manager.js - Track displayed quotes
+- cli.js - Main entry point with commander
+
+Testing:
+- Jest for unit tests
+- Integration tests for CLI commands
+- Contract tests for data structures
+
+No external APIs, no network calls, no optional dependencies.
+Validate against constitutional principles.

@@ -1,0 +1,16 @@
+/speckit.specify Build a CLI tool called 'daily-quote' that displays an inspiring quote each time it's run.
+
+Core functionality:
+- Show a different quote each calendar day (consistent for the same day)
+- Allow users to save quotes to a favorites list
+- Display quote history for the last 30 days
+- Show quote author and optional category
+
+Requirements:
+- Work completely offline (no API calls)
+- Store quotes locally in a simple format
+- Categories: motivation, wisdom, humor, reflection
+- Quotes should be appropriate for professional settings
+- Support basic commands: display (default), save-favorite, show-favorites, show-history
+
+The target user is a developer who wants daily inspiration but values simplicity and speed.
