@@ -1,238 +1,102 @@
 /**
- * Main CLI Logic
+ * CLI shim — the bootstrap for the Ink render tree.
  *
- * Orchestrates the entire CLI experience, handling navigation,
- * module routing, and session management.
+ * Reads persisted state from progressService, constructs the initial reducer
+ * state, renders <App />, and wires session-persistence side effects. All
+ * rendering lives in src/App.jsx and src/components/*. All state transitions
+ * live in src/state/navigationReducer.js.
  */
-
-import inquirer from 'inquirer';
-import chalk from 'chalk';
-import { showWelcome, displayFirstTimeTips } from './modules/welcome.js';
-import { showQuickTour } from './modules/quickTour.js';
-import { showJourney } from './modules/journey.js';
-import { showPhilosophy } from './modules/philosophy.js';
-import { showPractical } from './modules/practical.js';
-import { showConnect } from './modules/connect.js';
-import { displayMenu, displayClosingMessage, displayError } from './services/display.js';
-import { getTerminalCapabilities, checkMinimumRequirements } from './utils/terminal.js';
-import NavigationState from './services/navigation.js';
+import React from 'react';
+import { render } from 'ink';
+import App from './App.jsx';
+import { createInitialState } from './state/navigationReducer.js';
 import progressService from './services/progress.js';
-import { allModules } from './content/stories.js';
+import {
+  getTerminalCapabilities,
+  checkMinimumRequirements,
+} from './utils/terminal.js';
 
 /**
- * Show main menu and handle module selection
- * @param {NavigationState} navigationState - Current navigation state
- * @returns {Promise<string>} Action: 'continue', 'quit'
- */
-async function showMainMenu(navigationState) {
-  const capabilities = getTerminalCapabilities();
-
-  // Get visited modules
-  const visitedModules = progressService.getVisitedModules();
-
-  // Display menu
-  displayMenu(allModules, visitedModules, capabilities);
-
-  // Build choices
-  const choices = allModules.map((module, index) => {
-    const visited = visitedModules.includes(module.id) ? '✓ ' : '';
-    const icon = module.icon || '▸';
-
-    return {
-      name: capabilities.supportsColor
-        ? `${chalk.cyan(icon)} ${visited}${module.title}${chalk.dim.gray(` (~${Math.ceil(module.estimatedTime / 60)}min)`)}`
-        : `${icon} ${visited}${module.title} (~${Math.ceil(module.estimatedTime / 60)}min)`,
-      value: module.id,
-      short: module.title
-    };
-  });
-
-  // Add menu options
-  choices.push(new inquirer.Separator());
-  choices.push({
-    name: capabilities.supportsColor ? chalk.dim('Exit') : 'Exit',
-    value: 'exit'
-  });
-
-  // Prompt for selection
-  const answer = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'selection',
-      message: 'Select a module to explore:',
-      choices,
-      pageSize: 15
-    }
-  ]);
-
-  if (answer.selection === 'exit') {
-    return 'quit';
-  }
-
-  // Route to selected module
-  navigationState.goToModule(answer.selection);
-
-  return 'continue';
-}
-
-/**
- * Route to appropriate module handler
- * @param {string} moduleId - Module ID
- * @param {NavigationState} navigationState - Navigation state
- * @returns {Promise<string>} Action result
- */
-async function routeToModule(moduleId, navigationState) {
-  switch (moduleId) {
-    case 'journey':
-      return await showJourney(navigationState);
-    case 'philosophy':
-      return await showPhilosophy(navigationState);
-    case 'practical':
-      return await showPractical(navigationState);
-    case 'connect':
-      return await showConnect(navigationState);
-    default:
-      displayError(`Unknown module: ${moduleId}`);
-      return 'menu';
-  }
-}
-
-/**
- * Main CLI entry point
+ * Entry point. Resolves when the user exits or Ink tears down.
  */
 export async function startCLI() {
   const capabilities = getTerminalCapabilities();
 
-  // Check terminal requirements
+  // Soft gate on terminal size/TTY — don't block; just don't crash.
   const requirements = checkMinimumRequirements(capabilities);
-
-  // Only prompt if there are actual blocking issues (not just warnings)
   if (!requirements.meets && requirements.issues.length > 0) {
-    console.log(chalk.yellow.bold('\nWarning: Terminal requirements not met\n'));
-    requirements.issues.forEach(issue => {
-      console.log(chalk.yellow(`  • ${issue}`));
+    console.warn('\nTerminal requirements not met:');
+    requirements.issues.forEach((issue) => {
+      console.warn(`  • ${issue}`);
     });
-    console.log('\nThe CLI may not display correctly. Continue anyway?\n');
-
-    const answer = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'continue',
-        message: 'Continue?',
-        default: true
-      }
-    ]);
-
-    if (!answer.continue) {
-      console.log('\nGoodbye!\n');
-      return;
-    }
-  }
-  // Show warnings silently (don't block execution)
-  else if (requirements.warnings && requirements.warnings.length > 0) {
-    // Silently continue - warnings are informational only
-    // This allows npx and other non-TTY contexts to work seamlessly
+    console.warn('The CLI may not display correctly.\n');
+    // Don't prompt via inquirer — Ink will handle the rest. Continue anyway.
   }
 
-  // Initialize navigation state
-  const navigationState = new NavigationState();
-
-  // Check if first run
   const isFirstRun = progressService.isFirstRun();
   const hasCompletedQuickTour = progressService.hasCompletedQuickTour();
   const lastSession = progressService.getLastSession();
 
+  const initialState = createInitialState({
+    isFirstRun,
+    hasCompletedQuickTour,
+    lastSession,
+    resume: false, // Always land on welcome; users pick "Resume" from there.
+  });
+
+  progressService.startSession(null);
+
+  if (isFirstRun) {
+    progressService.completeFirstRun();
+  }
+
+  // Side-effect callbacks passed into <App /> so the render tree stays pure.
+  const appProps = {
+    initialState,
+    capabilities,
+    visitedModules: progressService.getVisitedModules(),
+    onVisit: (moduleId, segmentId) => {
+      progressService.updatePosition(moduleId, segmentId);
+    },
+    onCompleteModule: (moduleId) => {
+      progressService.completeModule(moduleId);
+    },
+    onCompleteQuickTour: () => {
+      progressService.completeQuickTour();
+    },
+    onSessionEnd: () => {
+      // Fires when the reducer reaches 'quit' — before Ink unmounts.
+      progressService.endSession();
+    },
+    getSessionDuration: () => progressService.getCurrentSessionDuration(),
+  };
+
+  const { waitUntilExit } = render(<App {...appProps} />, {
+    exitOnCtrlC: true,
+    patchConsole: false,
+  });
+
+  // Belt-and-suspenders: if the process is killed (SSH disconnect, SIGTERM),
+  // still persist session timing before exit.
+  const persistOnSignal = () => {
+    try {
+      progressService.endSession();
+    } catch {
+      // Config writes may race with process teardown; ignore.
+    }
+  };
+  process.once('SIGTERM', persistOnSignal);
+  process.once('SIGHUP', persistOnSignal);
+
   try {
-    // Show welcome screen
-    const mode = await showWelcome(isFirstRun, hasCompletedQuickTour, lastSession);
-
-    // Mark first run as completed
-    if (isFirstRun) {
-      progressService.completeFirstRun();
+    await waitUntilExit();
+  } finally {
+    // endSession is idempotent for our purposes (no-op after sessionStartTime is null).
+    try {
+      progressService.endSession();
+    } catch {
+      // ignore
     }
-
-    // Handle exit
-    if (mode === 'exit') {
-      console.log('\nGoodbye!\n');
-      return;
-    }
-
-    // Start session
-    progressService.startSession(mode);
-
-    // Show first-time tips
-    if (isFirstRun) {
-      displayFirstTimeTips(capabilities);
-    }
-
-    // Handle resume mode
-    if (mode === 'resume' && lastSession && lastSession.moduleId) {
-      navigationState.goToModule(lastSession.moduleId);
-      const result = await routeToModule(lastSession.moduleId, navigationState);
-
-      if (result === 'quit') {
-        navigationState.quit();
-      } else if (result === 'menu') {
-        // Continue to main menu loop
-      }
-    }
-    // Handle Quick Tour mode
-    else if (mode === 'quick-tour') {
-      const result = await showQuickTour(navigationState);
-
-      if (result === 'quit') {
-        navigationState.quit();
-      } else if (result === 'full-experience') {
-        // Continue to main menu loop
-        navigationState.mode = 'full-experience';
-      }
-    }
-    // Handle Full Experience mode
-    else if (mode === 'full-experience') {
-      navigationState.mode = 'full-experience';
-    }
-
-    // Main menu loop (for Full Experience)
-    while (!navigationState.shouldQuit() && navigationState.mode !== 'quit') {
-      const action = await showMainMenu(navigationState);
-
-      if (action === 'quit') {
-        navigationState.quit();
-        break;
-      }
-
-      // Route to selected module
-      const moduleId = navigationState.currentModuleId;
-      const result = await routeToModule(moduleId, navigationState);
-
-      if (result === 'quit') {
-        navigationState.quit();
-        break;
-      } else if (result === 'menu') {
-        navigationState.exitToMenu();
-      }
-    }
-
-    // End session
-    progressService.endSession();
-
-    // Display closing message
-    const stats = {
-      duration: navigationState.getSessionDuration()
-    };
-    displayClosingMessage(navigationState.mode, stats, capabilities);
-
-  } catch (error) {
-    // Handle user interrupt (Ctrl+C)
-    if (error.isTtyError || error.name === 'ExitPromptError') {
-      console.log('\n\nSession interrupted. Your progress has been saved.\n');
-    } else {
-      console.error('\nAn error occurred:', error.message);
-      console.error('Please report this issue if it persists.\n');
-    }
-
-    // Ensure session is ended
-    progressService.endSession();
   }
 }
 
