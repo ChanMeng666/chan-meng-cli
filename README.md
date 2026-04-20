@@ -158,8 +158,13 @@ cd chan-meng
 # Install dependencies
 npm install
 
-# Run the CLI
-node index.js
+# Build the Ink bundle, then run it
+npm run build
+npm start                # or: node dist/cli.js
+
+# Or develop with watch-mode rebuilds
+npm run dev              # in one terminal
+node dist/cli.js         # in another, after each change
 ```
 
 <div align="right">
@@ -173,9 +178,9 @@ node index.js
 > [!IMPORTANT]
 > Ensure you have the following:
 
-- **Node.js**: 18.0.0 or higher ([Download](https://nodejs.org/))
+- **Node.js**: 22.0.0 or higher ([Download](https://nodejs.org/))
 - **Terminal**: Minimum 80x24 characters
-- **Recommended**: A terminal with color support and Unicode/emoji
+- **Recommended**: A terminal with color support and Unicode/emoji (Windows Terminal, iTerm2, GNOME Terminal)
 
 ## 🎯 Interactive Modules
 
@@ -193,47 +198,64 @@ The CLI experience is organized into four interactive modules:
 ## 🛠️ Tech Stack
 
 **Runtime & Language:**
-- **Node.js 18+**: Modern JavaScript runtime
-- **ES2022**: Latest ECMAScript features with ES Modules
+- **Node.js 22+**: Modern JavaScript runtime
+- **ES2022 + JSX**: Latest ECMAScript features with ES Modules, transpiled by esbuild
 
-**CLI Framework:**
-- **inquirer** `^9.0.0` - Interactive command-line prompts
-- **chalk** `^5.0.0` - Terminal string styling with colors
-- **boxen** `^7.0.0` - Create beautiful boxes in terminal
-- **ora** `^7.0.0` - Elegant terminal spinners
-
-**Visual Enhancement:**
-- **figlet** `^1.7.0` - ASCII art text generation (lazy loaded)
-- **gradient-string** `^2.0.0` - Beautiful color gradients (lazy loaded)
+**UI Framework:**
+- **[Ink](https://github.com/vadimdemedes/ink)** `^7.0` — React renderer for the terminal. Layout uses Yoga (Flexbox), styling uses Ink `<Text>` / `<Box>` props.
+- **React** `^19.2` — component model and `useReducer` state machine
+- **[@inkjs/ui](https://github.com/vadimdemedes/ink-ui)** — `<Select>` for every menu / prompt
 
 **Configuration:**
-- **conf** `^11.0.0` - Simple config management with encryption support
+- **conf** `^11.0` — cross-platform preferences persistence
+
+**Build:**
+- **esbuild** (dev) — bundles `src/` → `dist/cli.js` (single ESM file with shebang, Node 22 target)
 
 > [!TIP]
-> All heavy dependencies (figlet, gradient-string) are lazy-loaded to ensure fast startup times.
+> Published tarball ships only `dist/cli.js` (≈1.8 MB single file), so `npx chan-meng` cold-starts with zero post-install work beyond the `conf` native-ish dep.
 
 ## 🏗️ Project Structure
 
 ```
 chan-meng/
-├── index.js              # Entry point with shebang for npx
-├── package.json          # NPM configuration
+├── index.js                        # Shebang entry; forwards to src/cli.js
+├── esbuild.config.js               # Bundle src/ → dist/cli.js (ESM, Node 22)
+├── package.json
 ├── src/
-│   ├── cli.js           # Main CLI orchestration and flow control
-│   ├── content/         # Story content modules (journey, philosophy, etc.)
-│   ├── modules/         # Interactive module handlers
-│   ├── services/        # Core services
-│   │   ├── display.js   # Display service for UI rendering
-│   │   ├── progress.js  # Progress tracking service
-│   │   └── navigation.js # Navigation and menu service
-│   └── utils/           # Utility modules
-│       ├── terminal.js  # Terminal capability detection
-│       └── config.js    # Configuration management
+│   ├── cli.js                      # Ink bootstrap shim (session + signals)
+│   ├── App.jsx                     # <App/> reducer-backed state machine + routing
+│   ├── components/                 # All UI as Ink/React components
+│   │   ├── BigTitle.jsx            # ASCII banner with cyan→magenta gradient
+│   │   ├── WelcomeScreen.jsx       # first screen — mode selection
+│   │   ├── MainMenu.jsx            # module list for Full Experience
+│   │   ├── QuickTour.jsx           # curated 3-min tour
+│   │   ├── ModuleView.jsx          # generic segment walker
+│   │   ├── ConnectView.jsx         # boxed contact card
+│   │   ├── SegmentView.jsx         # title + content + metadata layout
+│   │   ├── ClosingScreen.jsx       # thank-you / session duration
+│   │   ├── FirstTimeTips.jsx
+│   │   ├── Divider.jsx
+│   │   ├── Prompt.jsx              # wrapper around @inkjs/ui <Select>
+│   │   └── ErrorBanner.jsx
+│   ├── state/
+│   │   └── navigationReducer.js    # Pure reducer + action creators
+│   ├── contexts/
+│   │   └── CapabilitiesContext.js  # terminal caps, re-reads on resize
+│   ├── hooks/
+│   │   └── useCapabilities.js
+│   ├── services/
+│   │   └── progress.js             # visited/completed modules, session timing
+│   ├── content/                    # Hardcoded module data (unchanged from v1)
+│   │   ├── journey.js philosophy.js practical.js connect.js
+│   │   ├── stories.js quick-tour.js
+│   └── utils/
+│       ├── terminal.js             # Terminal capability detection
+│       └── config.js               # conf wrapper for persistence
 ├── tests/
-│   ├── unit/            # Unit tests
-│   └── integration/     # Integration tests
-└── specs/               # Specification documents
-    └── features/        # Feature specifications
+│   ├── unit/                       # Component + reducer + service tests
+│   └── integration/                # ink-testing-library scenarios
+└── specs/                          # Original feature specs
 ```
 
 ## ⚙️ Configuration
@@ -277,34 +299,39 @@ npm test -- --watch
 ### Build for Distribution
 
 ```bash
-# Create distributable package
-npm pack
+# Bundle src/ into dist/cli.js (runs automatically in prepublishOnly)
+npm run build
+
+# Dry-run the publish tarball to confirm shape
+npm pack --dry-run       # shows README.md + LICENSE + package.json + dist/cli.js
 
 # Test the package locally
-npx ./chan-meng-1.0.0.tgz
+npm pack && npx ./chan-meng-*.tgz
 ```
 
 **Development Scripts:**
 
 ```bash
-npm test          # Run Jest test suite
-npm run lint      # Run ESLint (when configured)
+npm test          # Run Jest test suite (Ink + reducer + component snapshots)
+npm run build     # Bundle via esbuild
+npm run dev       # Watch-mode build
+npm start         # Run dist/cli.js
 npm pack          # Create tarball for distribution
 ```
 
 ## 📊 Technical Highlights
 
 **Performance Metrics:**
-- ⚡ **< 5s** Startup time with lazy loading
-- 🎯 **80%+** Test coverage (lines)
-- 📦 **7 Dependencies** (within constitutional limit of 10)
-- 💨 **~1MB** Package size
+- ⚡ **< 5s** Startup time (single-file bundle, no lazy loading needed)
+- 🎯 **80%+** Test coverage (lines) — unit tests for reducer + every component + integration snapshots via `ink-testing-library`
+- 📦 **3 Runtime Dependencies**: `ink`, `react`, `@inkjs/ui` + `conf` (transitive deps included)
+- 💨 **~350 KB** compressed tarball / 1.8 MB unpacked
 
 **Code Quality:**
-- ✅ **ES Modules**: Modern JavaScript architecture
-- ✅ **Jest Testing**: Comprehensive unit and integration tests
+- ✅ **Ink + React**: Declarative components with real reuse (12 shared UI components)
+- ✅ **useReducer state machine**: Pure reducer, fully unit-testable without React
+- ✅ **Jest + ink-testing-library**: Unit + integration coverage with `lastFrame()` assertions
 - ✅ **Spec-Driven Development**: Built using Spec Kit methodology
-- ✅ **Constitutional Constraints**: Principled dependency management
 
 **Accessibility:**
 - ♿ **Terminal Detection**: Automatic capability detection
