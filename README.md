@@ -38,16 +38,12 @@ One-click **FREE** execution via NPX - no installation required.
 
 ## 📸 Screenshots & Demo
 
+> [!NOTE]
+> The CLI was rebuilt on **Ink 7 + React 19** in v2.0 (April 2026). The video and screenshots below show the current Ink-rendered interface. For the original v1 (inquirer/chalk/boxen) UI, see the collapsed legacy section further down.
 
+### 🎬 Demo Video (v2.0 — Ink rewrite)
 
 https://github.com/user-attachments/assets/0ae8e7c5-3774-438d-9ddf-47774763a3c8
-
-
-
-
-### 🎬 Demo Video
-
-https://github.com/user-attachments/assets/66d9844c-bce6-4cd2-844b-022f672f7cbb
 
 ### 🖼️ Interface Showcase
 
@@ -56,33 +52,75 @@ https://github.com/user-attachments/assets/66d9844c-bce6-4cd2-844b-022f672f7cbb
 <table>
 <tr>
 <td width="50%">
-<img src="https://github.com/user-attachments/assets/b9fb2214-4132-4d88-97f2-cc7c42e71655" alt="Welcome Screen with Gradient ASCII Art"/>
-<p align="center"><b>🎨 Welcome Screen</b><br/><em>Vibrant gradient ASCII art with minimalist tagline</em></p>
+<img src="./public/welcome-screen.png" alt="Welcome Screen — gradient CHAN MENG banner with mode selection"/>
+<p align="center"><b>🎨 Welcome Screen</b><br/><em>Cyan→magenta ASCII banner, returning-user greeting, and last-visit hint</em></p>
 </td>
 <td width="50%">
-<img src="https://github.com/user-attachments/assets/f612ef74-7179-434f-a1b8-97b91a006971" alt="Interactive Main Menu"/>
-<p align="center"><b>🎯 Interactive Menu</b><br/><em>Choose between Quick Tour and Full Experience</em></p>
+<img src="./public/main-menu.png" alt="Main menu listing the four modules with visited badges and durations"/>
+<p align="center"><b>🎯 Main Menu</b><br/><em>Four modules with [visited] badges and time-to-complete estimates</em></p>
 </td>
 </tr>
 <tr>
 <td width="50%">
-<img src="https://github.com/user-attachments/assets/9e23745a-0e3b-49b2-9016-f98261daee5a" alt="The Journey Module"/>
-<p align="center"><b>🗺️ The Journey</b><br/><em>Story-driven exploration of minimalist philosophy</em></p>
+<img src="./public/journey-module.png" alt="The Journey module — Constrained Beginnings segment"/>
+<p align="center"><b>🗺️ The Journey</b><br/><em>Boxed segment titles with story content and metadata footer</em></p>
 </td>
 <td width="50%">
-<img src="https://github.com/user-attachments/assets/0eb3b1ca-74ff-42c6-aa2a-bf9a08c41424" alt="Philosophy Module"/>
-<p align="center"><b>💭 Philosophy</b><br/><em>Deep dive into minimalist principles</em></p>
-</td>
-</tr>
-<tr>
-<td colspan="2">
-<img src="https://github.com/user-attachments/assets/931b2beb-6cf0-4834-8ac3-b2a0ed20b155" alt="Connect Module"/>
-<p align="center"><b>📧 Connect</b><br/><em>Multiple ways to get in touch with Chan Meng</em></p>
+<img src="./public/connect-module.png" alt="Connect module showing email, LinkedIn, GitHub and a communication note"/>
+<p align="center"><b>📧 Connect</b><br/><em>Contact card with a note on Chan's deliberate communication style</em></p>
 </td>
 </tr>
 </table>
 
 </div>
+
+<details>
+<summary><kbd>🗂️ Legacy v1 screenshots (pre-Ink rewrite)</kbd></summary>
+
+<br/>
+
+These are from the original v1 implementation built on **inquirer + chalk + boxen + figlet + gradient-string + ora**. The interactions, content, and module structure remain similar — but the rendering pipeline (and therefore the exact look) has changed.
+
+#### v1 Demo Video
+
+https://github.com/user-attachments/assets/66d9844c-bce6-4cd2-844b-022f672f7cbb
+
+#### v1 Interface Showcase
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/b9fb2214-4132-4d88-97f2-cc7c42e71655" alt="v1 Welcome Screen with Gradient ASCII Art"/>
+<p align="center"><b>🎨 Welcome Screen (v1)</b></p>
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/f612ef74-7179-434f-a1b8-97b91a006971" alt="v1 Interactive Main Menu"/>
+<p align="center"><b>🎯 Interactive Menu (v1)</b></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/9e23745a-0e3b-49b2-9016-f98261daee5a" alt="v1 The Journey Module"/>
+<p align="center"><b>🗺️ The Journey (v1)</b></p>
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/0eb3b1ca-74ff-42c6-aa2a-bf9a08c41424" alt="v1 Philosophy Module"/>
+<p align="center"><b>💭 Philosophy (v1)</b></p>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<img src="https://github.com/user-attachments/assets/931b2beb-6cf0-4834-8ac3-b2a0ed20b155" alt="v1 Connect Module"/>
+<p align="center"><b>📧 Connect (v1)</b></p>
+</td>
+</tr>
+</table>
+
+</div>
+
+</details>
 
 <details>
 <summary><kbd>📑 Table of Contents</kbd></summary>
@@ -134,8 +172,8 @@ Experience a curated journey through Chan's minimalist philosophy via an elegant
 Built with minimalist principles at its core - every dependency justified, every feature purposeful.
 
 **Design Principles:**
-- ✅ **7 Dependencies**: Carefully selected within constitutional limit of 10
-- ✅ **Fast Startup**: < 5 seconds with lazy loading for heavy modules
+- ✅ **4 Runtime Dependencies**: `ink`, `react`, `@inkjs/ui`, `conf` — well within the constitutional limit of 10
+- ✅ **Fast Startup**: < 5 seconds — single pre-built `dist/cli.js` ESM bundle, no post-install steps
 - ✅ **ES Modules**: Modern JavaScript with `"type": "module"`
 - ✅ **Zero Config**: Works out of the box with sensible defaults
 
