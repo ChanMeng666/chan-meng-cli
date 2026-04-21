@@ -1,6 +1,6 @@
 {
   "name": "chan-meng",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "An interactive CLI to meet Chan Meng and explore her minimalist philosophy",
   "type": "module",
   "main": "dist/cli.js",
