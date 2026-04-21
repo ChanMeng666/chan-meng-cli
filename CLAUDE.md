@@ -33,6 +33,12 @@ npm start           # Run dist/cli.js
 npm test            # Full Jest suite (unit + integration)
 ```
 
+## Releasing
+See `RELEASING.md` at the repo root for the full procedure. Summary: bump with
+`npm version <patch|minor|major>` and push the tag — GitHub Actions handles
+build, test, and npm publish via OIDC Trusted Publishing. Never run
+`npm publish` locally; never add an `NPM_TOKEN` secret.
+
 ## Code Style
 - ES Modules everywhere; `"type": "module"` in package.json
 - JSX files use `.jsx` extension; non-JSX logic uses `.js`
