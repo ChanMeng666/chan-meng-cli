@@ -43,12 +43,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ChanMeng666/chan-meng.git"
+    "url": "git+https://github.com/ChanMeng666/chan-meng-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/ChanMeng666/chan-meng/issues"
+    "url": "https://github.com/ChanMeng666/chan-meng-cli/issues"
   },
-  "homepage": "https://github.com/ChanMeng666/chan-meng#readme",
+  "homepage": "https://github.com/ChanMeng666/chan-meng-cli#readme",
   "dependencies": {
     "@inkjs/ui": "^2.0.0",
     "conf": "^11.0.2",
