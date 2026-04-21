@@ -27,18 +27,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      # Node 24 LTS bundles npm 11.x, which supports OIDC-based Trusted
+      # Publishing out of the box. (Node 22 still ships npm 10.x, and
+      # `npm install -g npm@latest` self-corrupts on the hosted runner.)
+      # The package still targets Node >= 22 for end users — this is
+      # purely a CI runner choice.
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
-      # Node 22 LTS bundles npm 10.x; Trusted Publishing (OIDC) needs
-      # npm >= 11.5.1. Upgrade explicitly to avoid a confusing failure
-      # on the first run.
-      - name: Upgrade npm (required for Trusted Publishing)
-        run: npm install -g npm@latest
+      - name: Confirm npm version supports Trusted Publishing
+        run: |
+          echo "node: $(node --version)"
+          echo "npm:  $(npm --version)"
 
       # Guard against the common footgun of tagging vX but leaving
       # package.json at vY. The publish would succeed with the wrong
