@@ -38,6 +38,13 @@ One-click **FREE** execution via NPX - no installation required.
 
 ## 📸 Screenshots & Demo
 
+
+
+https://github.com/user-attachments/assets/0ae8e7c5-3774-438d-9ddf-47774763a3c8
+
+
+
+
 ### 🎬 Demo Video
 
 https://github.com/user-attachments/assets/66d9844c-bce6-4cd2-844b-022f672f7cbb
