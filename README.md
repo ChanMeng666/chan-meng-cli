@@ -130,6 +130,7 @@ https://github.com/user-attachments/assets/66d9844c-bce6-4cd2-844b-022f672f7cbb
 - [✨ Key Features](#-key-features)
 - [🚀 Quick Start](#-quick-start)
   - [Run via NPX (Recommended)](#run-via-npx-recommended)
+  - [Install via Homebrew](#install-via-homebrew)
   - [Run from Source](#run-from-source)
 - [📦 Requirements](#-requirements)
 - [🎯 Interactive Modules](#-interactive-modules)
@@ -192,6 +193,22 @@ npx chan-meng
 ```
 
 🎉 **That's it!** The interactive experience will start immediately.
+
+### Install via Homebrew
+
+Prefer a managed install on macOS or Linux? Tap the formula and install:
+
+```bash
+brew install chanmeng666/tap/chan-meng
+```
+
+Then run it from anywhere:
+
+```bash
+chan-meng
+```
+
+Upgrade later with `brew upgrade chan-meng`.
 
 ### Run from Source
 
